@@ -1,10 +1,14 @@
 - hosts: localhost
-  var_files:
-    - vars/default.yml
+  connection: local
 
   tasks:
+    - shell: whoami
+      register: user
+    
     - name: Install Docker requirements
       apt: name={{ item }} state=latest update_cache=yes
+      become: yes
+      become_method: sudo
       loop:
         - apt-transport-https
         - ca-certificates
@@ -12,24 +16,33 @@
         - software-properties-common
     
     - name: Add Docker GPG apt Key
+      become: yes
+      become_method: sudo
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
     
     - name: Add Docker Repository
+      become: yes
+      become_method: sudo
       apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu eoan stable
+        repo: deb https://download.docker.com/linux/ubuntu disco stable
         state: present
 
     - name: Update apt and install docker-ce
+      become: yes
+      become_method: sudo
       apt: update_cache=yes name=docker-ce state=latest
 
-    - name: Install Docker Module for Python
-      pip:
-        name: docker
-
-    - name: adding existing user '{{ user }}' to group docker
+    - name: Adding user '{{ user.stdout }}' to group docker
+      become: yes
+      become_method: sudo
       user:
-        name: '{{ user }}'
+        name: '{{ user.stdout }}'
         groups: docker
         append: yes
+# TO DO:
+# add docker compose
+# add mediact docker compose tool
+# add dev to $PATH
+#
