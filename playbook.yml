@@ -1,5 +1,4 @@
-- hosts: all
-  become: true
+- hosts: localhost
   var_files:
     - vars/default.yml
 
