@@ -6,7 +6,10 @@
       register: user
     
     - name: Install Docker requirements
-      apt: name={{ item }} state=latest update_cache=yes
+      apt:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
       become: yes
       become_method: sudo
       loop:
@@ -32,7 +35,10 @@
     - name: Update apt and install docker-ce
       become: yes
       become_method: sudo
-      apt: update_cache=yes name=docker-ce state=latest
+      apt:
+        update_cache: yes
+        name: docker-ce
+        state: latest
 
     - name: Adding user '{{ user.stdout }}' to group docker
       become: yes
@@ -41,8 +47,51 @@
         name: '{{ user.stdout }}'
         groups: docker
         append: yes
-# TO DO:
-# add docker compose
-# add mediact docker compose tool
-# add dev to $PATH
-#
+
+    - name: Adding docker-compose
+      become: yes
+      become_method: sudo
+      shell: 'curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose'
+
+    - name: Making docker-compose executable
+      become: yes
+      become_method: sudo
+      file:
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+
+    - name: Creating docker-compose symlink to bin directory
+      become: yes
+      become_method: sudo
+      file:
+        src: /usr/local/bin/docker-compose
+        dest: /usr/bin/docker-compose
+        state: link
+
+    - name: Cloning Mediact Docker Compose Development Manager
+      git:
+        repo: https://github.com/mediact/docker-compose-development-manager.git
+        dest: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager'
+
+    - name: Making dev executable
+      file:
+        dest: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager/dev'
+        mode: +x
+
+    - name: Create a directory if it does not exist
+      file:
+        path: '/home/{{ user.stdout }}/.local/bin'
+        state: directory
+        mode: '0755'
+
+    - name: Making dev accessible
+      file:
+        src: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager/dev'
+        dest: '/home/{{ user.stdout }}/.local/bin/dev'
+        state: link
+
+    - name: Adding dev to PATH
+      shell: 'echo ''export PATH="$PATH:~/.local/bin"'' >> ~/.bashrc'
+
+    - name: Adding .local/bin to current session
+      shell: 'export PATH="$PATH:~/.local/bin"'
