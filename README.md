@@ -7,7 +7,7 @@ This Ansible playbook sets up a MediaCT workstation.
 Install the required Ubuntu packages:
 
 ```shell
-apt update && apt install -y ansible git python3-distutils sudo python3-apt aptitude
+sudo apt update && sudo apt install -y ansible git python3-distutils sudo python3-apt aptitude
 ```
 
 # Usage
