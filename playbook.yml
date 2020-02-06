@@ -93,5 +93,5 @@
     - name: Adding dev to PATH
       shell: 'echo ''export PATH="$PATH:~/.local/bin"'' >> ~/.bashrc'
 
-    - name: Refreshing .bashrc
-      shell: 'source ~/.bashrc'
+    - name: Adding .local/bin to current session
+      shell: 'export PATH="$PATH:~/.local/bin"'
