@@ -89,4 +89,9 @@
         src: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager/dev'
         dest: '/home/{{ user.stdout }}/.local/bin/dev'
         state: link
-# To do add /home/{{ user.stdout }}/.local/bin/dev to PATH
+
+    - name: Adding dev to PATH
+      shell: 'echo ''export PATH="$PATH:~/.local/bin"'' >> ~/.bashrc'
+
+    - name: Refreshing .bashrc
+      shell: 'source ~/.bashrc'
