@@ -2,10 +2,7 @@
   connection: local
 
   tasks:
-    - shell: whoami
-      register: user
-    
-    - name: Install Docker requirements
+    - name: Ensure Docker requirements are installed
       apt:
         name: '{{ item }}'
         state: latest
@@ -18,21 +15,35 @@
         - curl
         - software-properties-common
     
-    - name: Add Docker GPG apt Key
+    - name: Ensure 'Docker' GPG key is added
       become: yes
       become_method: sudo
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
     
-    - name: Add Docker Repository
+    - name: Ensure 'Docker' APT repository is available
       become: yes
       become_method: sudo
       apt_repository:
         repo: deb https://download.docker.com/linux/ubuntu disco stable
         state: present
+    
+    - name: Ensure 'Google Cloud SDK' GPG key is added
+      become: yes
+      become_method: sudo
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    
+    - name: Ensure 'Google Cloud SDK' APT repository is available
+      become: yes
+      become_method: sudo
+      apt_repository:
+        repo: deb https://packages.cloud.google.com/apt cloud-sdk main
+        state: present
 
-    - name: Update apt and install docker-ce
+    - name: Ensure latest version of Docker CE is installed
       become: yes
       become_method: sudo
       apt:
@@ -40,58 +51,71 @@
         name: docker-ce
         state: latest
 
-    - name: Adding user '{{ user.stdout }}' to group docker
+    - name: "Ensure user '{{ lookup('env','USER') }}' is added to group 'docker'"
       become: yes
       become_method: sudo
       user:
-        name: '{{ user.stdout }}'
+        name: "{{ lookup('env','USER') }}"
         groups: docker
         append: yes
 
-    - name: Adding docker-compose
+    - name: Ensure docker-compose is available
+      apt:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
       become: yes
       become_method: sudo
-      shell: 'curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose'
+      loop:
+        - docker-compose
 
-    - name: Making docker-compose executable
+    - name: Ensure google-cloud-sdk is available
+      apt:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
       become: yes
       become_method: sudo
-      file:
-        dest: /usr/local/bin/docker-compose
-        mode: +x
+      loop:
+        - google-cloud-sdk
 
-    - name: Creating docker-compose symlink to bin directory
+    - name: Ensure kubectl is available
+      apt:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
       become: yes
       become_method: sudo
-      file:
-        src: /usr/local/bin/docker-compose
-        dest: /usr/bin/docker-compose
-        state: link
+      loop:
+        - kubectl
 
-    - name: Cloning Mediact Docker Compose Development Manager
-      git:
-        repo: https://github.com/mediact/docker-compose-development-manager.git
-        dest: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager'
-
-    - name: Making dev executable
+    - name: Ensure ~/.local/bin exists
       file:
-        dest: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager/dev'
-        mode: +x
-
-    - name: Create a directory if it does not exist
-      file:
-        path: '/home/{{ user.stdout }}/.local/bin'
+        path: "/home/{{ lookup('env','USER') }}/.local/bin"
         state: directory
         mode: '0755'
 
-    - name: Making dev accessible
+    - name: Ensure ~/.local/bin is part of PATH in ~/.bashrc
+      lineinfile:
+        dest: "/home/{{ lookup('env','USER') }}/.bashrc"
+        state: present
+        backrefs: yes
+        regexp: 'PATH=(["]*)((?!.*?~/.local/bin).*?)(["]*)$'
+        line: 'PATH=\1\2:~/.local/bin\3'
+
+    - name: Ensure 'MediaCT Docker Compose Development Manager' ('dev') is cloned to ~/.local/lib
+      git:
+        repo: https://github.com/mediact/docker-compose-development-manager.git
+        dest: "/home/{{ lookup('env','USER') }}/.local/lib/docker-compose-development-manager"
+
+    - name: Ensure 'dev' is executable
       file:
-        src: '/home/{{ user.stdout }}/.local/lib/docker-compose-development-manager/dev'
-        dest: '/home/{{ user.stdout }}/.local/bin/dev'
+        dest: "/home/{{ lookup('env','USER') }}/.local/lib/docker-compose-development-manager/dev"
+        mode: +x
+
+    - name: Ensure 'dev' is available by linking it to ~/.local/bin/dev
+      file:
+        src: "/home/{{ lookup('env','USER') }}/.local/lib/docker-compose-development-manager/dev"
+        dest: "/home/{{ lookup('env','USER') }}/.local/bin/dev"
         state: link
 
-    - name: Adding dev to PATH
-      shell: 'echo ''export PATH="$PATH:~/.local/bin"'' >> ~/.bashrc'
-
-    - name: Adding .local/bin to current session
-      shell: 'export PATH="$PATH:~/.local/bin"'
