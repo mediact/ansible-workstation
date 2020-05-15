@@ -119,3 +119,9 @@
         dest: "/home/{{ lookup('env','USER') }}/.local/bin/dev"
         state: link
 
+    - name: Ensure XDebug works from development environments
+      become: yes
+      ufw:
+        rule: allow
+        proto: tcp
+        port: '9000'
