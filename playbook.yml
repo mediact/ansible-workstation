@@ -99,9 +99,9 @@
       lineinfile:
         dest: "/home/{{ lookup('env','USER') }}/.bashrc"
         state: present
-        backrefs: yes
+        insertafter: EOF
         regexp: 'PATH=(["]*)((?!.*?~/.local/bin).*?)(["]*)$'
-        line: 'PATH=\1\2:~/.local/bin\3'
+        line: 'export PATH="$PATH:~/.local/bin"'
 
     - name: Ensure 'MediaCT Docker Compose Development Manager' ('dev') is cloned to ~/.local/lib
       git:
