@@ -17,6 +17,6 @@ Run the following to set up a workstation:
 ```shell
 git clone https://github.com/mediact/ansible-workstation
 cd ansible-workstation
-ansible-playbook playbook.yml
+ansible-playbook --inventory 127.0.0.1, playbook.yml
 ```
 
