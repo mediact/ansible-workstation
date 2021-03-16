@@ -103,6 +103,42 @@
         regexp: 'PATH=(["]*)((?!.*?~/.local/bin).*?)(["]*)$'
         line: 'export PATH="$PATH:~/.local/bin"'
 
+    - name: Test if mdns4 is in nsswitch.conf
+      shell: "cat /etc/nsswitch.conf | egrep -i 'mdns4$'"
+      register: test_mdns4_present
+      ignore_errors: yes
+
+    - name: Ensure mdns4 is used during .local domain look-ups
+      become: yes
+      become_method: sudo
+      when: test_mdns4_present.stdout == ''
+      lineinfile:
+        dest: "/etc/nsswitch.conf"
+        state: present
+        regexp: '^(hosts:.*)'
+        line: '\1 mdns4'
+        backrefs: yes
+
+    - name: Ensure /etc/mdns.allow exists
+      become: yes
+      become_method: sudo
+      copy:
+        content: ""
+        dest: "/etc/mdns.allow"
+        force: no
+        group: root
+        owner: root
+        mode: '0644'
+
+    - name: Ensure multi-level .local domains are accepted
+      become: yes
+      become_method: sudo
+      lineinfile:
+        dest: "/etc/mdns.allow"
+        state: present
+        insertafter: EOF
+        line: ".local"
+
     - name: Ensure 'MediaCT Docker Compose Development Manager' ('dev') is cloned to ~/.local/lib
       git:
         repo: https://github.com/mediact/docker-compose-development-manager.git
