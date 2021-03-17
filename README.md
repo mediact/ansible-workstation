@@ -2,7 +2,17 @@
 
 This Ansible playbook sets up a MediaCT workstation.
 
-# Requirements
+# Usage
+
+Install the workspace with the following command:
+
+```shell
+bash -c "$(curl -sL https://raw.githubusercontent.com/mediact/ansible-workstation/master/install.sh)"
+```
+
+# Alternative usage
+
+## Requirements
 
 Install the required Ubuntu packages:
 
@@ -10,7 +20,7 @@ Install the required Ubuntu packages:
 sudo apt update && sudo apt install -y ansible git python3-distutils sudo python3-apt aptitude
 ```
 
-# Usage
+## Usage
 
 Run the following to set up a workstation:
 
