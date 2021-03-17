@@ -7,7 +7,7 @@ This Ansible playbook sets up a MediaCT workstation.
 Install the workspace with the following command:
 
 ```shell
-bash -c "$(curl -sL https://raw.githubusercontent.com/mediact/ansible-workstation/master/install.sh)"
+bash -c "$(wget -O - https://raw.githubusercontent.com/mediact/ansible-workstation/master/install.sh)"
 ```
 
 # Alternative usage
